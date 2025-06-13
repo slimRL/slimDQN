@@ -56,7 +56,7 @@ class PrioritizedSamplingDistribution(UniformSamplingDistribution):
         self,
         seed: int,
         max_capacity: int,
-        priority_exponent: float = 1.0,
+        priority_exponent: float = 0.5,
     ) -> None:
         self._max_capacity = max_capacity
         self._priority_exponent = priority_exponent
