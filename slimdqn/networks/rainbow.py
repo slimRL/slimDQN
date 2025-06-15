@@ -9,7 +9,7 @@ from slimdqn.networks.architectures.dqn import DQNNet
 from slimdqn.sample_collection.replay_buffer import ReplayBuffer, ReplayElement
 
 
-class DQN:
+class Rainbow:
     def __init__(
         self,
         key: jax.random.PRNGKey,
@@ -44,18 +44,19 @@ class DQN:
         self.target_update_frequency = target_update_frequency
         self.cumulated_loss = 0
         self.cumulated_unsupported_prob = 0
-        self.support = jnp.linspace(min_value, max_value, self.n_bins + 1, dtype=jnp.float32)
-        self.bin_centers = (self.support[:-1] + self.support[1:]) / 2
-        self.clip_target = lambda target: jnp.clip(target, min_value, max_value)
+        self.support = jnp.linspace(min_value, max_value, self.n_bins, dtype=jnp.float32)
 
     def update_online_params(self, step: int, replay_buffer: ReplayBuffer):
         if step % self.update_to_data == 0:
-            batch_samples = replay_buffer.sample()
+            batch_samples, metadata = replay_buffer.sample()
 
-            self.params, self.optimizer_state, loss, unsupported_prob = self.learn_on_batch(
-                self.params, self.target_params, self.optimizer_state, batch_samples
+            self.params, self.optimizer_state, losses, unsupported_prob = self.learn_on_batch(
+                self.params, self.target_params, self.optimizer_state, batch_samples, metadata["probabilities"]
             )
-            self.cumulated_loss += loss
+            metadata.update({"loss": losses})
+            replay_buffer.update(metadata)
+
+            self.cumulated_loss += losses.mean()
             self.cumulated_unsupported_prob += unsupported_prob
 
     def update_target_params(self, step: int):
@@ -63,9 +64,9 @@ class DQN:
             self.target_params = self.params.copy()
 
             logs = {
-                "loss": self.cumulated_loss / (self.target_update_frequency / self.data_to_update),
+                "loss": self.cumulated_loss / (self.target_update_frequency / self.update_to_data),
                 "unsupported_prob": self.cumulated_unsupported_prob
-                / (self.target_update_frequency / self.data_to_update),
+                / (self.target_update_frequency / self.update_to_data),
             }
             self.cumulated_loss = 0
             self.cumulated_unsupported_prob = 0
@@ -75,23 +76,21 @@ class DQN:
 
     @partial(jax.jit, static_argnames="self")
     def learn_on_batch(
-        self,
-        params: FrozenDict,
-        params_target: FrozenDict,
-        optimizer_state,
-        batch_samples,
+        self, params: FrozenDict, params_target: FrozenDict, optimizer_state, batch_samples, batch_probabilities
     ):
-        (loss, unsupported_prob), grad_loss = jax.value_and_grad(self.loss_on_batch, has_aux=True)(
-            params, params_target, batch_samples
+        grad_loss, (losses, unsupported_prob) = jax.grad(self.loss_on_batch, has_aux=True)(
+            params, params_target, batch_samples, batch_probabilities
         )
         updates, optimizer_state = self.optimizer.update(grad_loss, optimizer_state)
         params = optax.apply_updates(params, updates)
 
-        return params, optimizer_state, loss, unsupported_prob
+        return params, optimizer_state, losses, unsupported_prob
 
-    def loss_on_batch(self, params: FrozenDict, params_target: FrozenDict, samples):
-        losses, unsupported_probs = jax.vmap(self.loss, in_axes=(None, None, 0))(params, params_target, samples).mean()
-        return losses.mean(), unsupported_probs.mean()
+    def loss_on_batch(self, params: FrozenDict, params_target: FrozenDict, samples, batch_probabilities):
+        losses, unsupported_probs = jax.vmap(self.loss, in_axes=(None, None, 0))(params, params_target, samples)
+        loss_weights = 1.0 / jnp.sqrt(batch_probabilities + 1e-10)
+        loss_weights /= jnp.max(loss_weights)
+        return (losses * loss_weights).mean(), (losses, unsupported_probs.mean())
 
     def loss(self, params: FrozenDict, params_target: FrozenDict, sample: ReplayElement):
         # computes the loss for a single sample
@@ -103,22 +102,24 @@ class DQN:
 
     def compute_target(self, params: FrozenDict, sample: ReplayElement):
         # computes the target value for single sample
-        target_support = sample.reward + (1 - sample.is_terminal) * (self.gamma**self.update_horizon) * self.bin_centers
+        target_support = sample.reward + (1 - sample.is_terminal) * (self.gamma**self.update_horizon) * self.support
         target_logits = self.network.apply_fn(params, sample.next_state)
-        target_prob = target_logits[jnp.argmax(jax.nn.softmax(target_logits) @ self.bin_centers)]
+        target_prob = jax.nn.softmax(target_logits[jnp.argmax(jax.nn.softmax(target_logits) @ self.support)])
         return target_support, target_prob
 
     def project_target_on_support(self, target_support: jax.Array, target_prob: jax.Array) -> jax.Array:
         delta_z = (self.support[-1] - self.support[0]) / (self.n_bins - 1)
         clipped_support = jnp.clip(target_support, self.support[0], self.support[-1])
-        return jnp.sum(jnp.clip(1 - jnp.abs(clipped_support - self.support) / delta_z, 0, 1) * target_prob)
+        return jnp.sum(
+            jnp.clip(1 - jnp.abs(clipped_support - self.support[:, None]) / delta_z, 0, 1) * target_prob, axis=-1
+        ), 1 - jnp.sum(jnp.clip(1 - jnp.abs(clipped_support - self.support[:, None]) / delta_z, 0, 1) * target_prob)
 
     @partial(jax.jit, static_argnames="self")
     def best_action(self, params: FrozenDict, state: jnp.ndarray, **kwargs):
         # computes the best action for a single state
         # We first compute the probabilities by applying the softmax on the last axis (bin axis).
         # Then, we compute the expectation by multiplying with the bin centers.
-        return jnp.argmax(jax.nn.softmax(self.network.apply_fn(params, state)) @ self.bin_centers)
+        return jnp.argmax(jax.nn.softmax(self.network.apply_fn(params, state)) @ self.support)
 
     def get_model(self):
         return {"params": self.params}

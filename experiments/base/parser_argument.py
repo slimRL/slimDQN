@@ -105,10 +105,6 @@ def add_base_arguments(parser: argparse.ArgumentParser):
         default="fc",
         choices=["cnn", "impala", "fc"],
     )
-
-
-@output_added_arguments
-def add_dqn_arguments(parser: argparse.ArgumentParser):
     parser.add_argument(
         "-ne",
         "--n_epochs",
@@ -158,3 +154,37 @@ def add_dqn_arguments(parser: argparse.ArgumentParser):
         type=float,
         default=1_000,
     )
+
+
+def add_categorical_loss_parameters(parser: argparse.ArgumentParser):
+    parser.add_argument(
+        "-nb",
+        "--n_bins",
+        help="Number of bins composing the histogram.",
+        type=int,
+        default=50,
+    )
+    parser.add_argument(
+        "-minn",
+        "--min_value",
+        help="Value of the lowest learnable value of the target.",
+        type=float,
+        default=-100,
+    )
+    parser.add_argument(
+        "-maxn",
+        "--max_value",
+        help="Value of the highest learnable value of the target.",
+        type=float,
+        default=100,
+    )
+
+
+@output_added_arguments
+def add_dqn_arguments(parser: argparse.ArgumentParser):
+    pass
+
+
+@output_added_arguments
+def add_rainbow_arguments(parser: argparse.ArgumentParser):
+    add_categorical_loss_parameters(parser)

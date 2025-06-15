@@ -42,10 +42,13 @@ class UniformSamplingDistribution:
 
         indices = self._rng_key.integers(len(self._index_to_key), size=size)
 
-        return np.fromiter(
-            (self._index_to_key[index] for index in indices),
-            dtype=np.int32,
-            count=size,
+        return (
+            np.fromiter(
+                (self._index_to_key[index] for index in indices),
+                dtype=np.int32,
+                count=size,
+            ),
+            {},
         )
 
 
@@ -63,26 +66,19 @@ class PrioritizedSamplingDistribution(UniformSamplingDistribution):
         self._sum_tree = sum_tree.SumTree(self._max_capacity)
         super().__init__(seed=seed)
 
-    def add(self, key: ReplayItemID, priority: float) -> None:
+    def add(self, key: ReplayItemID) -> None:
         super().add(key)
-        if priority is None:
-            priority = 0.0
         self._sum_tree.set(
             self._key_to_index[key],
-            0.0 if priority == 0.0 else priority**self._priority_exponent,
+            self._sum_tree.max_recorded_priority**self._priority_exponent,
         )
 
-    def update(
-        self,
-        keys: "npt.NDArray[ReplayItemID] | ReplayItemID",
-        priorities: "npt.NDArray[np.float64] | float",
-    ) -> None:
-        if not isinstance(keys, np.ndarray):
-            keys = np.asarray([keys], dtype=np.int32)
-
-        priorities = np.where(priorities == 0.0, 0.0, priorities**self._priority_exponent)
+    def update(self, metadata) -> None:
+        priorities = np.where(
+            metadata["loss"] == 0.0, 0.0, metadata["loss"] ** self._priority_exponent
+        )  # to handle negative priority_exponent
         self._sum_tree.set(
-            np.fromiter((self._key_to_index[key] for key in keys), dtype=np.int32),
+            np.fromiter((self._key_to_index[key] for key in metadata["keys"]), dtype=np.int32),
             priorities,
         )
 
@@ -104,13 +100,16 @@ class PrioritizedSamplingDistribution(UniformSamplingDistribution):
 
     def sample(self, size: int):
         if self._sum_tree.root == 0.0:
-            keys = super().sample(size).keys
-            return keys
+            keys, _ = super().sample(size)
+            return keys, {"probabilities": np.full_like(keys, 1.0 / len(self._index_to_key), dtype=np.float64)}
 
         targets = self._rng_key.uniform(0.0, self._sum_tree.root, size=size)
         indices = self._sum_tree.query(targets)
-        return np.fromiter(
-            (self._index_to_key[index] for index in indices),
-            count=size,
-            dtype=np.int32,
+        return (
+            np.fromiter(
+                (self._index_to_key[index] for index in indices),
+                count=size,
+                dtype=np.int32,
+            ),
+            {"probabilities": self._sum_tree.get(indices) / self._sum_tree.root},
         )

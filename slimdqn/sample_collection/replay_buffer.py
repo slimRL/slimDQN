@@ -199,14 +199,14 @@ class ReplayBuffer:
             if transition.episode_end:
                 self._trajectory.clear()
 
-    def add(self, transition: TransitionElement, **kwargs: Any) -> None:
+    def add(self, transition: TransitionElement) -> None:
         for replay_element in self.accumulate(transition):
             if self._compress:
                 replay_element = replay_element.pack()
 
             key = ReplayItemID(self.add_count)
             self._memory[key] = replay_element
-            self._sampling_distribution.add(key, **kwargs)
+            self._sampling_distribution.add(key)
             self.add_count += 1
             if self.add_count > self._max_capacity:
                 oldest_key, _ = self._memory.popitem(last=False)
@@ -219,7 +219,7 @@ class ReplayBuffer:
         if size is None:
             size = self._batch_size
 
-        samples = self._sampling_distribution.sample(size)
+        samples, metadata = self._sampling_distribution.sample(size)
         replay_elements = operator.itemgetter(*samples)(self._memory)
         if not isinstance(replay_elements, tuple):
             replay_elements = (replay_elements,)
@@ -227,11 +227,8 @@ class ReplayBuffer:
             replay_elements = map(operator.methodcaller("unpack"), replay_elements)
 
         batch = jax.tree_util.tree_map(lambda *xs: np.stack(xs), *replay_elements)
-        return batch
+        metadata.update({"keys": samples})
+        return batch, metadata
 
-    def update(
-        self,
-        keys: npt.NDArray[ReplayItemID] | ReplayItemID,
-        **kwargs: Any,
-    ) -> None:
-        self._sampling_distribution.update(keys, **kwargs)
+    def update(self, metadata) -> None:
+        self._sampling_distribution.update(metadata)
