@@ -88,7 +88,7 @@ class Rainbow:
 
     def loss_on_batch(self, params: FrozenDict, params_target: FrozenDict, samples, batch_probabilities):
         losses, unsupported_probs = jax.vmap(self.loss, in_axes=(None, None, 0))(params, params_target, samples)
-        loss_weights = 1.0 / jnp.sqrt(batch_probabilities + 1e-10)
+        loss_weights = 1.0 / jnp.sqrt(batch_probabilities + 1e-10)  # sqrt because beta is fixed to 0.5 in PER
         loss_weights /= jnp.max(loss_weights)
         return (losses * loss_weights).mean(), (losses, unsupported_probs.mean())
 
@@ -110,9 +110,16 @@ class Rainbow:
     def project_target_on_support(self, target_support: jax.Array, target_prob: jax.Array) -> jax.Array:
         delta_z = (self.support[-1] - self.support[0]) / (self.n_bins - 1)
         clipped_support = jnp.clip(target_support, self.support[0], self.support[-1])
-        return jnp.sum(
-            jnp.clip(1 - jnp.abs(clipped_support - self.support[:, None]) / delta_z, 0, 1) * target_prob, axis=-1
-        ), 1 - jnp.sum(jnp.clip(1 - jnp.abs(clipped_support - self.support[:, None]) / delta_z, 0, 1) * target_prob)
+        return (
+            jnp.clip(1 - jnp.abs(clipped_support - self.support[:, None]) / delta_z, 0, 1) @ target_prob,
+            (
+                (
+                    jnp.clip(1 - jnp.abs(clipped_support - self.support[:, None]) / delta_z, 0, 1)[jnp.array([0, -1])]
+                    == 1  # just take probabilities beyond vmin (0) and vmax (-1)
+                )
+                @ target_prob
+            ).sum(),
+        )
 
     @partial(jax.jit, static_argnames="self")
     def best_action(self, params: FrozenDict, state: jnp.ndarray, **kwargs):
