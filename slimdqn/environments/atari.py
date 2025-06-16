@@ -11,7 +11,7 @@ import cv2
 
 
 class AtariEnv:
-    def __init__(self, name: str, render_mode=None) -> None:
+    def __init__(self, name: str, render_mode=None, sticky_actions=True) -> None:
         self.name = name
         self.state_height, self.state_width = (84, 84)
         self.n_stacked_frames = 4
@@ -22,7 +22,7 @@ class AtariEnv:
             f"ALE/{self.name}-v5",
             full_action_space=False,
             frameskip=1,
-            repeat_action_probability=0.25,
+            repeat_action_probability=0.25 if sticky_actions else 0.0,
             max_num_frames_per_episode=100_000,
             continuous=False,
             continuous_action_threshold=0.0,
