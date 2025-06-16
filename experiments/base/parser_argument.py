@@ -103,7 +103,7 @@ def add_base_arguments(parser: argparse.ArgumentParser):
         help="Type of architecture.",
         type=str,
         default="fc",
-        choices=["cnn", "impala", "fc"],
+        choices=["cnn", "der", "impala", "fc"],
     )
     parser.add_argument(
         "-ne",
