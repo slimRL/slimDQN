@@ -51,6 +51,18 @@ class DQNNet(nn.Module):
                 nn.Conv(features=self.features[2], kernel_size=(3, 3), strides=(1, 1), kernel_init=initializer)(x)
             )
             x = x.reshape((x.shape[0], -1))
+        elif self.architecture_type == "der":
+            initializer = nn.initializers.xavier_uniform()
+            idx_feature_start = 2
+            x = nn.relu(
+                nn.Conv(features=self.features[0], kernel_size=(5, 5), strides=(5, 5), kernel_init=initializer)(
+                    jnp.array(x, ndmin=4) / 255.0
+                )
+            )
+            x = nn.relu(
+                nn.Conv(features=self.features[1], kernel_size=(5, 5), strides=(5, 5), kernel_init=initializer)(x)
+            )
+            x = x.reshape((x.shape[0], -1))
         elif self.architecture_type == "impala":
             initializer = nn.initializers.xavier_uniform()
             idx_feature_start = 3
