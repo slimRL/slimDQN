@@ -1,6 +1,6 @@
 SHARED_ARGS="--features 32 64 256 --replay_buffer_capacity 100_000 --batch_size 32 --update_horizon 20 --gamma 0.99 \
     --horizon 27_000 --n_epochs 20 --n_training_steps_per_epoch 5_000 --update_to_data 1 --n_initial_samples 1_600 \
-    --epsilon_end 0.01 --epsilon_duration 2_000 --n_bins 50 "
+    --epsilon_end 0.01 --epsilon_duration 2_000 --n_bins 50 --min_value -10 --max_value 10"
 
 GAME="MsPacman"
 ARCHITECTURE_TYPE="der"  # cnn impala der
