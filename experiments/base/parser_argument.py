@@ -124,8 +124,8 @@ def add_dqn_arguments(parser: argparse.ArgumentParser):
         default=10_000,
     )
     parser.add_argument(
-        "-utd",
-        "--update_to_data",
+        "-dtu",
+        "--data_to_update",
         help="Number of data points to collect per online Q-network update.",
         type=float,
         default=1,

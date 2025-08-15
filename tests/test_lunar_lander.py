@@ -40,7 +40,7 @@ class TestLunarLander(unittest.TestCase):
                 "1",
                 "--n_training_steps_per_epoch",
                 "10",
-                "--update_to_data",
+                "--data_to_update",
                 "3",
                 "--target_update_frequency",
                 "3",

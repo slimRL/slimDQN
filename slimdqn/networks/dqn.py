@@ -21,7 +21,7 @@ class DQN:
         learning_rate: float,
         gamma: float,
         update_horizon: int,
-        update_to_data: int,
+        data_to_update: int,
         target_update_frequency: int,
         adam_eps: float = 1e-8,
     ):
@@ -34,12 +34,12 @@ class DQN:
 
         self.gamma = gamma
         self.update_horizon = update_horizon
-        self.update_to_data = update_to_data
+        self.data_to_update = data_to_update
         self.target_update_frequency = target_update_frequency
         self.cumulated_loss = 0
 
     def update_online_params(self, step: int, replay_buffer: ReplayBuffer):
-        if step % self.update_to_data == 0:
+        if step % self.data_to_update == 0:
             batch_samples = replay_buffer.sample()
 
             self.params, self.optimizer_state, loss = self.learn_on_batch(
@@ -51,7 +51,7 @@ class DQN:
         if step % self.target_update_frequency == 0:
             self.target_params = self.params.copy()
 
-            logs = {"loss": self.cumulated_loss / (self.target_update_frequency / self.update_to_data)}
+            logs = {"loss": self.cumulated_loss / (self.target_update_frequency / self.data_to_update)}
             self.cumulated_loss = 0
 
             return True, logs
