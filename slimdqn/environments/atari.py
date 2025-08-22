@@ -20,12 +20,9 @@ class AtariEnv:
         gym.register_envs(ale_py)  # To use ale with gym which speeds up step()
         self.env = gym.make(
             f"ALE/{self.name}-v5",
-            full_action_space=False,
             frameskip=1,
             repeat_action_probability=0.25,
-            max_num_frames_per_episode=100_000,
-            continuous=False,
-            continuous_action_threshold=0.0,
+            max_num_frames_per_episode=108_000,
             render_mode=render_mode,
         ).env
 
