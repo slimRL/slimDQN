@@ -1,40 +1,35 @@
 # Inspired by dopamine implementation: https://github.com/google/dopamine/blob/master/dopamine/jax/replay_memory/replay_buffer.py
 """Simpler implementation of the standard DQN replay memory."""
-import collections
+from collections import OrderedDict, deque
 import operator
-import typing
-from typing import Any, Iterable, Optional
 
 import jax
 import numpy as np
-import numpy.typing as npt
 
 from flax import struct
 import snappy
 
-from slimdqn.sample_collection import ReplayItemID
 
-
-class TransitionElement(typing.NamedTuple):
-    observation: Optional[npt.NDArray[Any]]
-    action: int
-    reward: float
+class TransitionElement:
+    observation: np.ndarray[np.float64]
+    action: np.uint
+    reward: np.float32
     is_terminal: bool
-    episode_end: bool = False
+    episode_end: bool
 
 
 class ReplayElement(struct.PyTreeNode):
     """A single replay transition element supporting compression."""
 
-    state: npt.NDArray[np.float64]
-    action: int
-    reward: float
-    next_state: npt.NDArray[np.float64]
+    state: np.ndarray[np.float64]
+    action: np.uint
+    reward: np.float32
+    next_state: np.ndarray[np.float64]
     is_terminal: bool
     episode_end: bool
 
     @staticmethod
-    def compress(buffer: npt.NDArray) -> npt.NDArray:
+    def compress(buffer: np.ndarray) -> np.ndarray:
         if not buffer.flags["C_CONTIGUOUS"]:
             buffer = buffer.copy(order="C")
         compressed = np.frombuffer(snappy.compress(buffer), dtype=np.uint8)
@@ -49,20 +44,20 @@ class ReplayElement(struct.PyTreeNode):
         )
 
     @staticmethod
-    def uncompress(compressed: npt.NDArray) -> npt.NDArray:
+    def uncompress(compressed: np.ndarray) -> np.ndarray:
         shape = tuple(compressed["shape"])
         dtype = compressed["dtype"].item()
         compressed_bytes = compressed["data"].tobytes()
         uncompressed = snappy.uncompress(compressed_bytes)
         return np.ndarray(shape=shape, dtype=dtype, buffer=uncompressed)
 
-    def pack(self) -> "ReplayElement":
+    def pack(self):
         return self.replace(
             state=ReplayElement.compress(self.state),
             next_state=ReplayElement.compress(self.next_state),
         )
 
-    def unpack(self) -> "ReplayElement":
+    def unpack(self):
         return self.replace(
             state=ReplayElement.uncompress(self.state),
             next_state=ReplayElement.uncompress(self.next_state),
@@ -73,24 +68,19 @@ class ReplayBuffer:
 
     def __init__(
         self,
-        sampling_distribution,
-        batch_size: int,
         max_capacity: int,
+        seed: int,
+        batch_size: int,
         stack_size: int = 4,
         update_horizon: int = 1,
         gamma: float = 0.99,
-        checkpoint_duration: int = 4,
-        compress: bool = True,
         clipping: callable = None,
     ):
         self.add_count = 0
         self._max_capacity = max_capacity
-        self._compress = compress
-        self._memory = collections.OrderedDict[ReplayItemID, ReplayElement]()
+        self._memory = OrderedDict[int, ReplayElement]()
 
         self._sampling_distribution = sampling_distribution
-
-        self._checkpoint_duration = checkpoint_duration
         self._batch_size = batch_size
 
         self._stack_size = stack_size
@@ -98,7 +88,7 @@ class ReplayBuffer:
         self._gamma = gamma
         self._clipping = clipping
 
-        self._trajectory = collections.deque[TransitionElement](maxlen=self._update_horizon + self._stack_size)
+        self._trajectory = deque[TransitionElement](maxlen=self._update_horizon + self._stack_size)
 
     def _make_replay_element(self) -> ReplayElement:
 
@@ -127,8 +117,7 @@ class ReplayBuffer:
         # The start index for o_tm1 is the start of the n-step trajectory.
         # The end index for o_tm1 is just moving over `stack size`.
         o_tm1_slice = slice(
-            trajectory_len - effective_horizon - self._stack_size,
-            trajectory_len - effective_horizon - 1,
+            trajectory_len - effective_horizon - self._stack_size, trajectory_len - effective_horizon - 1
         )
         # The action chosen will be the last transition in the stack.
         a_tm1 = self._trajectory[o_tm1_slice.stop].action
@@ -137,10 +126,7 @@ class ReplayBuffer:
         # Initialize the slice for which this observation is valid.
         # The start index for o_t is just moving backwards `stack size`.
         # The end index for o_t is just the last index of the n-step trajectory.
-        o_t_slice = slice(
-            trajectory_len - self._stack_size,
-            trajectory_len - 1,
-        )
+        o_t_slice = slice(trajectory_len - self._stack_size, trajectory_len - 1)
         # Terminal information will come from the last transition in the stack
         is_terminal = self._trajectory[o_t_slice.stop].is_terminal
         episode_end = self._trajectory[o_t_slice.stop].is_terminal
@@ -149,10 +135,7 @@ class ReplayBuffer:
         # transition of o_tm1 plus the effective horizon.
         # This might over-run the trajectory length in the case of n-step
         # returns where the last transition is terminal.
-        gamma_slice = slice(
-            o_tm1_slice.stop,
-            o_tm1_slice.stop + self._update_horizon - 1,
-        )
+        gamma_slice = slice(o_tm1_slice.stop, o_tm1_slice.stop + self._update_horizon - 1)
         assert o_t_slice.stop - o_tm1_slice.stop == effective_horizon
         assert o_t_slice.stop - 1 >= o_tm1_slice.stop
 
@@ -179,7 +162,7 @@ class ReplayBuffer:
             episode_end=episode_end,
         )
 
-    def accumulate(self, transition: TransitionElement) -> Iterable[ReplayElement]:
+    def accumulate(self, transition: TransitionElement):
         """Add a transition to the accumulator, maybe receive valid ReplayElements.
 
         If the transition has a terminal or end of episode signal, it will create a
@@ -199,12 +182,11 @@ class ReplayBuffer:
             if transition.episode_end:
                 self._trajectory.clear()
 
-    def add(self, transition: TransitionElement, **kwargs: Any) -> None:
+    def add(self, transition: TransitionElement, **kwargs) -> None:
         for replay_element in self.accumulate(transition):
-            if self._compress:
-                replay_element = replay_element.pack()
+            replay_element = replay_element.pack()
 
-            key = ReplayItemID(self.add_count)
+            key = self.add_count
             self._memory[key] = replay_element
             self._sampling_distribution.add(key, **kwargs)
             self.add_count += 1
@@ -212,7 +194,7 @@ class ReplayBuffer:
                 oldest_key, _ = self._memory.popitem(last=False)
                 self._sampling_distribution.remove(oldest_key)
 
-    def sample(self, size=None) -> ReplayElement | tuple[ReplayElement]:
+    def sample(self, size=None):
         """Sample a batch of elements from the replay buffer."""
         assert self.add_count, ValueError("No samples in replay buffer!")
 
@@ -229,9 +211,5 @@ class ReplayBuffer:
         batch = jax.tree_util.tree_map(lambda *xs: np.stack(xs), *replay_elements)
         return batch
 
-    def update(
-        self,
-        keys: npt.NDArray[ReplayItemID] | ReplayItemID,
-        **kwargs: Any,
-    ) -> None:
+    def update(self, keys, **kwargs) -> None:
         self._sampling_distribution.update(keys, **kwargs)
