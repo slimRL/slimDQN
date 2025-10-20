@@ -1,84 +1,76 @@
 # Inspired by dopamine implementation: https://github.com/google/dopamine/blob/master/dopamine/jax/replay_memory/samplers.py
-"""Sampling distributions."""
+"""Uniform and Prioritized sampling distributions."""
 
 import numpy as np
 
-from slimdqn.sample_collection import sum_tree
+from slimdqn.sample_collection.sum_tree import SumTree
 
 
-class UniformSamplingDistribution:
-    """A uniform sampling distribution."""
+class Uniform:
+    def __init__(self, seed: int):
+        self.rng = np.random.default_rng(seed)
 
-    def __init__(self, seed: int) -> None:
-        self._rng_key = np.random.default_rng(seed)
+        # This is maintained to enable using `rng.integers` while sampling
+        self.index_to_key = []
+        # This intertwined mapping with `index_to_key` is needed for efficient O(1) pop
+        # instead of O(n) pop from `index_to_key` list
+        self.key_to_index = {}
 
-        self._key_to_index = {}
-        self._index_to_key = []
+    def add(self, key):
+        self.index_to_key.append(key)
+        self.key_to_index[key] = len(self.index_to_key)
 
-    def add(self, key) -> None:
-        self._key_to_index[key] = len(self._index_to_key)
-        self._index_to_key.append(key)
+    def remove(self, key):
+        # To remove `key` from the sampler in O(1), we do:
+        # (1) Fetch the index of `key` in the `index_to_key` list using `key_to_index` dictionary
+        # (2) Swap the last element in `index_to_key` list with `key` present at the fetched `index`
+        #     (`key` becomes the last element in `index_to_key` list by this operation)
+        # (3) Update the `key_to_index` dictionary to reflect the effect of swapping
+        # (4) Pop `key` in O(1) from `index_to_key` list (as it is the last element), and from `key_to_index` dictionary
 
-    def remove(self, key) -> None:
-        index = self._key_to_index[key]
-
-        # for efficient O(1) pop on the keys
-        self._index_to_key[index], self._index_to_key[-1] = (self._index_to_key[-1], self._index_to_key[index])
-        self._key_to_index[self._index_to_key[index]] = index
-        self._key_to_index.pop(self._index_to_key.pop())
+        index = self.key_to_index[key]
+        self.index_to_key[index], self.index_to_key[-1] = (self.index_to_key[-1], self.index_to_key[index])
+        self.key_to_index[self.index_to_key[index]] = index
+        self.key_to_index.pop(self.index_to_key.pop())
 
     def sample(self, size: int):
-        indices = self._rng_key.integers(len(self._index_to_key), size=size)
-        return np.fromiter((self._index_to_key[index] for index in indices), dtype=np.int32, count=size)
+        indices = self.rng.integers(len(self.index_to_key), size=size)
+        return np.array([self.index_to_key[index] for index in indices], dtype=np.int32)
 
 
-class PrioritizedSamplingDistribution(UniformSamplingDistribution):
-    """A prioritized sampling distribution."""
+class Prioritized(Uniform):
+    def __init__(self, seed: int, max_capacity: int, alpha: float = 1.0):
 
-    def __init__(
-        self,
-        seed: int,
-        max_capacity: int,
-        priority_exponent: float = 1.0,
-    ) -> None:
-        self._max_capacity = max_capacity
-        self._priority_exponent = priority_exponent
-        self._sum_tree = sum_tree.SumTree(self._max_capacity)
+        self.max_capacity = max_capacity
+        self.alpha = alpha
+        self.sum_tree = SumTree(self.max_capacity)
+
         super().__init__(seed=seed)
 
-    def add(self, key, priority: float) -> None:
+    def add(self, key):
         super().add(key)
-        if priority is None:
-            priority = 0.0
-        self._sum_tree.set(self._key_to_index[key], 0.0 if priority == 0.0 else priority**self._priority_exponent)
+        self.sum_tree.set(self.key_to_index[key], self.sum_tree.max_recorded_priority)
 
-    def update(self, keys, priorities) -> None:
-        if not isinstance(keys, np.ndarray):
-            keys = np.asarray([keys], dtype=np.int32)
-
-        priorities = np.where(priorities == 0.0, 0.0, priorities**self._priority_exponent)
-        self._sum_tree.set(np.fromiter((self._key_to_index[key] for key in keys), dtype=np.int32), priorities)
+    def update(self, keys, loss):
+        keys = np.atleast_1d(keys).astype(np.int32)
+        self.sum_tree.set([self.key_to_index[key] for key in keys], loss**self.alpha)
 
     def remove(self, key) -> None:
-        index = self._key_to_index[key]
-        last_index = len(self._index_to_key) - 1
+        index = self.key_to_index[key]
+        last_index = len(self.index_to_key) - 1
         if index == last_index:
             # If index and last_index are the same, simply set the priority to 0.0.
-            self._sum_tree.set(index, 0.0)
+            self.sum_tree.set(index, 0.0)
         else:
-            # Otherwise, swap priorities with current index and last index
-            # as that's how we pop the key from our datastructure.
-            # This will run in O(logn) where n is the # of elements in the tree
-            self._sum_tree.set(
-                np.asarray([index, last_index], dtype=np.int32), np.asarray([self._sum_tree.get(last_index), 0.0])
-            )
+            # Otherwise, swap priorities of `index` with `last_index`, and set priority of `last_index` to 0.
+            # This keeps the remove() on sum_tree consistent with remove() on `index_to_key`.
+            self.sum_tree.set([index, last_index], [self.sum_tree.get(last_index), 0.0])
         super().remove(key)
 
     def sample(self, size: int):
-        if self._sum_tree.root == 0.0:
-            keys = super().sample(size).keys
-            return keys
+        if self.sum_tree.root == 0.0:
+            return super().sample(size)
 
-        targets = self._rng_key.uniform(0.0, self._sum_tree.root, size=size)
-        indices = self._sum_tree.query(targets)
-        return np.fromiter((self._index_to_key[index] for index in indices), count=size, dtype=np.int32)
+        targets = self.rng.uniform(0.0, self.sum_tree.root, size=size)
+        indices = self.sum_tree.query(targets)
+        return np.array([self._index_to_key[index] for index in indices], dtype=np.int32)
