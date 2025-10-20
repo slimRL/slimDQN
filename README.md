@@ -6,7 +6,7 @@
 <a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**`slimRL`** provides a concise and customizable implementation of Deep Q-Network (DQN) and Fitted Q Iteration (FQI) algorithms in Reinforcement Learning⛳ for Lunar Lander and Car-On-Hill environments. 
+**`slimRL`** provides a concise and customizable implementation of Deep Q-Network (DQN) algorithm in Reinforcement Learning⛳ for Lunar Lander and Atari games. 
 It enables to quickly code and run proof-of-concept type of experiments in off-policy Deep RL settings.
 
 ### 🚀 Key advantages
@@ -16,67 +16,49 @@ It enables to quickly code and run proof-of-concept type of experiments in off-p
 
 <p align="center">
   <img width=48% src="images/lunar_lander.gif">
-  <img width=48% src="images/car_on_hill.gif">
 </p>
 
 
 Let's dive in!
 
 ## User installation
-CPU installation:
+CPU installation for Lunar Lander:
 ```bash
 python3 -m venv env_cpu
 source env_cpu/bin/activate
 pip install --upgrade pip setuptools wheel
 pip install -e .[dev]
 ```
-GPU installation:
+GPU installation for Atari:
 ```bash
-python3 -m venv env_gpu
-source env_gpu/bin/activate
+python3 -m venv env
+source env/bin/activate
 pip install --upgrade pip setuptools wheel
 pip install -e .[dev,gpu]
 ```
 To verify the installation, run the tests as:```pytest```
 
 ## Running experiments
-`slimRL` provides support for [Car-On-Hill](https://www.jmlr.org/papers/volume6/ernst05a/ernst05a.pdf) with FQI and [Lunar Lander](https://gymnasium.farama.org/environments/box2d/lunar_lander/) with DQN algorithm. However, you can easily extend it to other [gym](https://github.com/Farama-Foundation/Gymnasium) environments like [Acrobot](https://gymnasium.farama.org/environments/classic_control/acrobot/), [Cart Pole](https://gymnasium.farama.org/environments/classic_control/cart_pole/), [Mountain Car](https://gymnasium.farama.org/environments/classic_control/mountain_car/), by replicating the setup for Lunar Lander.
 ### Training
 
-To train a DQN agent on Lunar Lander on your local system, run (provide the `--gpu` flag if you want to use GPU):\
+To train a DQN agent on Lunar Lander on your local system, run:\
 `
-launch_job/lunar_lander/launch_local_dqn.sh  --experiment_name 
+launch_job/lunar_lander/local_dqn.sh  --experiment_name 
 {experiment_name}  --first_seed 0 --last_seed 0 --features 100 100 --learning_rate 3e-4 --n_epochs 100
 `
 
 It trains a DQN agent with 2 hidden layers of size 100, for a single random seed for 100 epochs. 
 
-- You can tune the other parameters based on your requirements. Run `lunar_lander_dqn --help` on the terminal to check out all the parameters
 - To see the stage of training, you can check the logs in `experiments/lunar_lander/logs/{experiment_name}/dqn` folder
 - The models and results are stored in `experiments/lunar_lander/exp_output/{experiment_name}/dqn` folder
 
 To train on cluster:\
 `
-launch_job/lunar_lander/launch_cluster_dqn.sh  --experiment_name {experiment_name}  --first_seed 0 --last_seed 0 --features 100 100 --learning_rate 3e-4 --n_epochs 100
+launch_job/lunar_lander/cluster_dqn.sh  --experiment_name {experiment_name}  --first_seed 0 --last_seed 0 --features 100 100 --learning_rate 3e-4 --n_epochs 100
 `
 
-### Plotting results
-Once the training is done, you can generate the Performance Curve (for multiple experiments) by running:\
-`
-plot_iqm --experiment_folders "{experiment_name_1}/dqn" "{experiment_name_2}/dqn" --env "lunar_lander"
-`
-
-It generates an [IQM](https://arxiv.org/abs/2108.13264)-based Performance Curve, similar to the one shown above.
-
-## Plotting the metrics for Car-On-Hill
-
-Generate the necessary metrics required for plotting Performance loss, Approximation Error, etc. by running:\
-`car_on_hill_fqi_eval --experiment_folder "{experiment_name}/fqi"  --performance --approximation_error_components`
-
-Once complete, open `experiments/car_on_hill/plots.ipynb` jupyter notebook, set the appropriate experiment name and parameters and run all cells to generate the plots.
-
-<!-- ## Collaboration
-To report bugs or suggest improvements, use the [issues page](https://github.com/theovincent/slimRL/issues) of this repository. -->
+## Collaboration
+To report bugs or suggest improvements, use the [issues page](https://github.com/theovincent/slimRL/issues) of this repository.
 
 ## License
 This project is licensed under the MIT License. See the [LICENSE](https://github.com/theovincent/slimRL/blob/main/LICENSE) file for details.
