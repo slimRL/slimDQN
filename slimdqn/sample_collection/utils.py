@@ -28,7 +28,7 @@ def collect_single_sample(key, env, agent, rb: ReplayBuffer, p, epsilon_schedule
         TransitionElement(
             observation=obs,
             action=action,
-            reward=reward if rb._clipping is None else rb._clipping(reward),
+            reward=reward if rb.clipping is None else rb.clipping(reward),
             is_terminal=absorbing,
             episode_end=episode_end,
         )

@@ -39,7 +39,7 @@ class DQN:
 
     def update_online_params(self, step: int, replay_buffer: ReplayBuffer):
         if step % self.update_to_data == 0:
-            batch_samples = replay_buffer.sample()
+            batch_samples, _ = replay_buffer.sample()
 
             self.params, self.optimizer_state, loss = self.learn_on_batch(
                 self.params, self.target_params, self.optimizer_state, batch_samples

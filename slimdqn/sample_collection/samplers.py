@@ -17,8 +17,8 @@ class Uniform:
         self.key_to_index = {}
 
     def add(self, key):
-        self.index_to_key.append(key)
         self.key_to_index[key] = len(self.index_to_key)
+        self.index_to_key.append(key)
 
     def remove(self, key):
         # To remove `key` from the sampler in O(1), we do:
@@ -77,4 +77,4 @@ class Prioritized(Uniform):
         importance_weights = 1.0 / np.sqrt(probabilities + 1e-10)  # beta = 0.5
         importance_weights /= np.max(importance_weights)
 
-        return np.array([self._index_to_key[index] for index in indices], dtype=np.int32), importance_weights
+        return np.array([self.index_to_key[index] for index in indices], dtype=np.int32), importance_weights
