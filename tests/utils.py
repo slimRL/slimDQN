@@ -29,7 +29,6 @@ class Generator:
             reward,  # reward
             next_state,  # next_state
             terminal,  # terminal
-            False,  # episode_end
         )
 
     @partial(jax.jit, static_argnames="self")
