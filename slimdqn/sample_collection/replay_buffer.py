@@ -186,10 +186,10 @@ class ReplayBuffer:
         if batch_size is None:
             batch_size = self.batch_size
 
-        sample_keys = self.sampling_distribution.sample(batch_size)
+        sample_keys, importance_weights = self.sampling_distribution.sample(batch_size)
         replay_elements = operator.itemgetter(*sample_keys)(self.memory)
         replay_elements = map(operator.methodcaller("unpack"), replay_elements)
-        return jax.tree_util.tree_map(lambda *xs: np.stack(xs), *replay_elements)
+        return jax.tree_util.tree_map(lambda *xs: np.stack(xs), *replay_elements), importance_weights
 
     def update(self, keys, loss):
         # update function for Prioritized sampler

@@ -35,7 +35,7 @@ class Uniform:
 
     def sample(self, size: int):
         indices = self.rng.integers(len(self.index_to_key), size=size)
-        return np.array([self.index_to_key[index] for index in indices], dtype=np.int32)
+        return np.array([self.index_to_key[index] for index in indices], dtype=np.int32), None
 
 
 class Prioritized(Uniform):
@@ -73,4 +73,8 @@ class Prioritized(Uniform):
 
         targets = self.rng.uniform(0.0, self.sum_tree.root, size=size)
         indices = self.sum_tree.query(targets)
-        return np.array([self._index_to_key[index] for index in indices], dtype=np.int32)
+        probabilities = self.sum_tree.get(indices)
+        importance_weights = 1.0 / np.sqrt(probabilities + 1e-10)  # beta = 0.5
+        importance_weights /= np.max(importance_weights)
+
+        return np.array([self._index_to_key[index] for index in indices], dtype=np.int32), importance_weights
