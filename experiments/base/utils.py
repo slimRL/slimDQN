@@ -103,7 +103,7 @@ def store_params(p: dict, shared_params: List[str], agent_params: List[str]):
         if not loaded:  # the file might be corrupted
             print("!!!! The file parameters.json might be corrupted. It has been deleted. A new file will be created.")
             os.remove(params_path)
-            store_params(p, shared_params, agent_params)
+            return store_params(p, shared_params, agent_params)
     else:
         params_dict = {}
 

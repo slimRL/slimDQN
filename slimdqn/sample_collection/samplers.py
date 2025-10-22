@@ -27,7 +27,6 @@ class Uniform:
         #     (`key` becomes the last element in `index_to_key` list by this operation)
         # (3) Update the `key_to_index` dictionary to reflect the effect of swapping
         # (4) Pop `key` in O(1) from `index_to_key` list (as it is the last element), and from `key_to_index` dictionary
-
         index = self.key_to_index[key]
         self.index_to_key[index], self.index_to_key[-1] = (self.index_to_key[-1], self.index_to_key[index])
         self.key_to_index[self.index_to_key[index]] = index

@@ -1,7 +1,6 @@
 # Inspired by dopamine implementation: https://github.com/google/dopamine/blob/master/tests/dopamine/jax/replay_memory/sum_tree_test.py
 
 import unittest
-import numpy as np
 
 from slimdqn.sample_collection import sum_tree
 
@@ -44,9 +43,8 @@ class SumTreeTest(unittest.TestCase):
         self.assertEqual(self.tree.query(0.99), 5)
 
     def test_max_recorded_priority(self):
-        k = 32
         self.tree.set(0, 0)
         self.assertEqual(self.tree.max_recorded_priority, 1)
-        for i in range(1, k):
+        for i in range(1, 32):
             self.tree.set(i, i)
             self.assertEqual(self.tree.max_recorded_priority, i)

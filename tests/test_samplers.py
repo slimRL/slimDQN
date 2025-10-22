@@ -1,7 +1,6 @@
 # Inspired by dopamine implementation: https://github.com/google/dopamine/blob/master/tests/dopamine/jax/replay_memory/samplers_test.py
 """Testing samplers."""
 
-from absl.testing import absltest
 from absl.testing import parameterized
 from slimdqn.sample_collection import samplers
 import numpy as np

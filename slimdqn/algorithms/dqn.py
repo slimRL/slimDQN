@@ -5,7 +5,7 @@ import jax.numpy as jnp
 import optax
 from flax.core import FrozenDict
 
-from slimdqn.networks.architectures.dqn import DQNNet
+from slimdqn.algorithms.architectures.dqn import DQNNet
 from slimdqn.sample_collection.replay_buffer import ReplayBuffer, ReplayElement
 
 
@@ -20,8 +20,8 @@ class DQN:
         learning_rate: float,
         gamma: float,
         update_horizon: int,
-        update_to_data: int,
-        target_update_frequency: int,
+        data_to_update: int,
+        target_update_period: int,
         adam_eps: float = 1e-8,
     ):
         self.network = DQNNet(features, architecture_type, n_actions)
@@ -33,12 +33,12 @@ class DQN:
 
         self.gamma = gamma
         self.update_horizon = update_horizon
-        self.update_to_data = update_to_data
-        self.target_update_frequency = target_update_frequency
+        self.data_to_update = data_to_update
+        self.target_update_period = target_update_period
         self.cumulated_loss = 0
 
     def update_online_params(self, step: int, replay_buffer: ReplayBuffer):
-        if step % self.update_to_data == 0:
+        if step % self.data_to_update == 0:
             batch_samples, _ = replay_buffer.sample()
 
             self.params, self.optimizer_state, loss = self.learn_on_batch(
@@ -47,10 +47,10 @@ class DQN:
             self.cumulated_loss += loss
 
     def update_target_params(self, step: int):
-        if step % self.target_update_frequency == 0:
+        if step % self.target_update_period == 0:
             self.target_params = self.params.copy()
 
-            logs = {"loss": self.cumulated_loss / (self.target_update_frequency / self.update_to_data)}
+            logs = {"loss": self.cumulated_loss / (self.target_update_period / self.data_to_update)}
             self.cumulated_loss = 0
 
             return True, logs

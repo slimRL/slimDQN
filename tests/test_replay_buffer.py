@@ -35,6 +35,7 @@ class ReplayBufferTest(parameterized.TestCase):
             stack_size=STACK_SIZE,
             update_horizon=1,
             gamma=1.0,
+            clipping=None,
         )
 
         transitions = []
@@ -70,6 +71,7 @@ class ReplayBufferTest(parameterized.TestCase):
             stack_size=STACK_SIZE,
             update_horizon=5,
             gamma=1.0,
+            clipping=None,
         )
 
         for i in range(50):
@@ -88,6 +90,7 @@ class ReplayBufferTest(parameterized.TestCase):
             stack_size=1,
             update_horizon=1,
             gamma=0.99,
+            clipping=None,
         )
 
         for i in range(1, 21):

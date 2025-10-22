@@ -7,7 +7,7 @@ import numpy as np
 from experiments.base.dqn import train
 from experiments.base.utils import prepare_logs
 from slimdqn.environments.atari import AtariEnv
-from slimdqn.networks.dqn import DQN
+from slimdqn.algorithms.dqn import DQN
 from slimdqn.sample_collection.replay_buffer import ReplayBuffer
 from slimdqn.sample_collection.samplers import Uniform
 
@@ -37,8 +37,8 @@ def run(argvs=sys.argv[1:]):
         learning_rate=p["learning_rate"],
         gamma=p["gamma"],
         update_horizon=p["update_horizon"],
-        update_to_data=p["update_to_data"],
-        target_update_frequency=p["target_update_frequency"],
+        data_to_update=p["data_to_update"],
+        target_update_period=p["target_update_period"],
         adam_eps=1.5e-4,
     )
     train(train_key, p, agent, env, rb)
