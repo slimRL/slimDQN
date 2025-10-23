@@ -105,10 +105,6 @@ def add_base_arguments(parser: argparse.ArgumentParser):
         default="fc",
         choices=["cnn", "impala", "fc"],
     )
-
-
-@output_added_arguments
-def add_dqn_arguments(parser: argparse.ArgumentParser):
     parser.add_argument(
         "-ne",
         "--n_epochs",
@@ -124,7 +120,7 @@ def add_dqn_arguments(parser: argparse.ArgumentParser):
         default=10_000,
     )
     parser.add_argument(
-        "-utd",
+        "-dtu",
         "--data_to_update",
         help="Number of data points to collect per online Q-network update.",
         type=float,
@@ -158,3 +154,8 @@ def add_dqn_arguments(parser: argparse.ArgumentParser):
         type=float,
         default=1_000,
     )
+
+
+@output_added_arguments
+def add_dqn_arguments(parser: argparse.ArgumentParser):
+    pass
