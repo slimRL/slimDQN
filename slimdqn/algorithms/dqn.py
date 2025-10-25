@@ -57,13 +57,7 @@ class DQN:
         return False, {}
 
     @partial(jax.jit, static_argnames="self")
-    def learn_on_batch(
-        self,
-        params: FrozenDict,
-        params_target: FrozenDict,
-        optimizer_state,
-        batch_samples,
-    ):
+    def learn_on_batch(self, params: FrozenDict, params_target: FrozenDict, optimizer_state, batch_samples):
         loss, grad_loss = jax.value_and_grad(self.loss_on_batch)(params, params_target, batch_samples)
         updates, optimizer_state = self.optimizer.update(grad_loss, optimizer_state)
         params = optax.apply_updates(params, updates)
