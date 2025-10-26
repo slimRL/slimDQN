@@ -96,12 +96,12 @@ class ReplayBuffer:
         subtrajectory_len = len(self.subtrajectory_tail)
 
         # We construct a ReplayElement in the following scenarios:
-        # (1) subtrajectory_tail is full size: this results in a single non-terminating ReplayElement (is_terminal=False and does not correspond to last transition's is_terminal in subtrajectory)
-        # (2) subtrajectory_tail is less than full size and beginning_trajectory=True (subtrajectory corresponds to beginning of trajectory):
-        #       - If last transition is terminating, we create ReplayElement with/without zero frame(s) in state (based on subtrajectory_len)
-        #       - If last transition is not terminating but subtrajectory_len >= update_horizon+1, we can create a single non-terminating transition
-        # (3) subtrajectory_tail is less than full size and beginning_trajectory=False: this is when we are generating the last of ReplayElements after the trajectory terminates
-        #     Additionally, check if subtrajectory_len is at least stack_size (for valid state) and last transition is terminal.
+        # (1) subtrajectory_tail is full size: this results in a non-terminating ReplayElement.
+        # (2) subtrajectory_tail is not full size and the subtrajectory corresponds to beginning of trajectory.
+        #   In this case, either the sample is terminal and a ReplayElement can be constructed, or it needs at least n+1 observations.
+        # (3) subtrajectory_tail is not full size, subtrajectory_tail represents the end of the trajectory.
+        #   In this case, a ReplayElement can be constructed only if the last observation leads to a terminal state
+        #   and that there is enough observations to form a state (more than stack_size).
         if subtrajectory_len == self.update_horizon + self.stack_size:
             effective_horizon = self.update_horizon
             is_terminal = False
