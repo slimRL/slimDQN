@@ -92,12 +92,18 @@ def store_params(p: dict, shared_params: List[str], agent_params: List[str]):
         # PS: when many seeds are launched at the same time, the params exist but they are still being dumped.
         #     This is why a json.JSONDecodeError might be raised, in which case we wait until the parameters are dumped.
         loaded = False
-        while not loaded:
+        n_attempts = 0
+        while not loaded and n_attempts <= 10:
+            n_attempts += 1
             try:
                 params_dict = json.load(open(params_path, "r"))
                 loaded = True
             except json.JSONDecodeError:
                 pass
+        if not loaded:  # the file might be corrupted
+            print("!!!! The file parameters.json might be corrupted. It has been deleted. A new file will be created.")
+            os.remove(params_path)
+            return store_params(p, shared_params, agent_params)
     else:
         params_dict = {}
 

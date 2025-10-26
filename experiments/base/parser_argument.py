@@ -53,7 +53,7 @@ def add_base_arguments(parser: argparse.ArgumentParser):
         nargs="*",
         help="List of features for the Q-networks.",
         type=int,
-        default=[200, 200],
+        default=[100, 100],
     )
     parser.add_argument(
         "-rbc",
@@ -105,16 +105,12 @@ def add_base_arguments(parser: argparse.ArgumentParser):
         default="fc",
         choices=["cnn", "impala", "fc"],
     )
-
-
-@output_added_arguments
-def add_dqn_arguments(parser: argparse.ArgumentParser):
     parser.add_argument(
         "-ne",
         "--n_epochs",
         help="Number of epochs to perform.",
         type=int,
-        default=50,
+        default=10,
     )
     parser.add_argument(
         "-ntspe",
@@ -124,15 +120,15 @@ def add_dqn_arguments(parser: argparse.ArgumentParser):
         default=10_000,
     )
     parser.add_argument(
-        "-utd",
-        "--update_to_data",
+        "-dtu",
+        "--data_to_update",
         help="Number of data points to collect per online Q-network update.",
         type=float,
         default=1,
     )
     parser.add_argument(
-        "-tuf",
-        "--target_update_frequency",
+        "-tup",
+        "--target_update_period",
         help="Number of training steps before updating the target Q-network.",
         type=int,
         default=200,
@@ -158,3 +154,8 @@ def add_dqn_arguments(parser: argparse.ArgumentParser):
         type=float,
         default=1_000,
     )
+
+
+@output_added_arguments
+def add_dqn_arguments(parser: argparse.ArgumentParser):
+    pass

@@ -12,11 +12,7 @@ class Stack(nn.Module):
     @nn.compact
     def __call__(self, x):
         initializer = nn.initializers.xavier_uniform()
-        x = nn.Conv(
-            features=self.stack_size,
-            kernel_size=(3, 3),
-            kernel_init=initializer,
-        )(x)
+        x = nn.Conv(features=self.stack_size, kernel_size=(3, 3), kernel_init=initializer)(x)
         x = nn.max_pool(x, window_shape=(3, 3), padding="SAME", strides=(2, 2))
 
         for _ in range(2):

@@ -2,11 +2,10 @@ from functools import partial
 
 import jax
 import jax.numpy as jnp
-import numpy as np
 import optax
 from flax.core import FrozenDict
 
-from slimdqn.networks.architectures.dqn import DQNNet
+from slimdqn.algorithms.architectures.dqn import DQNNet
 from slimdqn.sample_collection.replay_buffer import ReplayBuffer, ReplayElement
 
 
@@ -21,8 +20,8 @@ class DQN:
         learning_rate: float,
         gamma: float,
         update_horizon: int,
-        update_to_data: int,
-        target_update_frequency: int,
+        data_to_update: int,
+        target_update_period: int,
         adam_eps: float = 1e-8,
     ):
         self.network = DQNNet(features, architecture_type, n_actions)
@@ -34,13 +33,13 @@ class DQN:
 
         self.gamma = gamma
         self.update_horizon = update_horizon
-        self.update_to_data = update_to_data
-        self.target_update_frequency = target_update_frequency
+        self.data_to_update = data_to_update
+        self.target_update_period = target_update_period
         self.cumulated_loss = 0
 
     def update_online_params(self, step: int, replay_buffer: ReplayBuffer):
-        if step % self.update_to_data == 0:
-            batch_samples = replay_buffer.sample()
+        if step % self.data_to_update == 0:
+            batch_samples, _ = replay_buffer.sample()
 
             self.params, self.optimizer_state, loss = self.learn_on_batch(
                 self.params, self.target_params, self.optimizer_state, batch_samples
@@ -48,23 +47,17 @@ class DQN:
             self.cumulated_loss += loss
 
     def update_target_params(self, step: int):
-        if step % self.target_update_frequency == 0:
+        if step % self.target_update_period == 0:
             self.target_params = self.params.copy()
 
-            logs = {"loss": self.cumulated_loss / (self.target_update_frequency / self.update_to_data)}
+            logs = {"loss": self.cumulated_loss / (self.target_update_period / self.data_to_update)}
             self.cumulated_loss = 0
 
             return True, logs
         return False, {}
 
     @partial(jax.jit, static_argnames="self")
-    def learn_on_batch(
-        self,
-        params: FrozenDict,
-        params_target: FrozenDict,
-        optimizer_state,
-        batch_samples,
-    ):
+    def learn_on_batch(self, params: FrozenDict, params_target: FrozenDict, optimizer_state, batch_samples):
         loss, grad_loss = jax.value_and_grad(self.loss_on_batch)(params, params_target, batch_samples)
         updates, optimizer_state = self.optimizer.update(grad_loss, optimizer_state)
         params = optax.apply_updates(params, updates)

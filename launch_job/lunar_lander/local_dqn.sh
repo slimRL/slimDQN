@@ -9,14 +9,7 @@ if ! tmux has-session -t slimdqn; then
 fi
 
 tmux send-keys -t slimdqn "cd $(pwd)" ENTER
-if [[ $GPU = true ]]
-then
-    tmux send-keys -t slimdqn "source env_gpu/bin/activate" ENTER
-    FRACTION_GPU=$(echo "scale=2 ; 1 / ($LAST_SEED - $FIRST_SEED + 1)" | bc)
-    tmux send-keys -t slimdqn "export XLA_PYTHON_CLIENT_MEM_FRACTION=$FRACTION_GPU" ENTER
-else
-    tmux send-keys -t slimdqn "source env_cpu/bin/activate" ENTER
-fi
+tmux send-keys -t slimdqn "source env_cpu/bin/activate" ENTER
 
 echo "launch train $ALGO_NAME local"
 for (( seed=$FIRST_SEED; seed<=$LAST_SEED; seed++ ))
