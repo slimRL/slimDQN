@@ -41,3 +41,4 @@ def test_prepare_logs():
     except Exception as e:
         if type(e) != AssertionError:
             assert 0, f"The exception {type(e).__name__} is raised. Exception: {e}"
+    shutil.rmtree(save_path)
