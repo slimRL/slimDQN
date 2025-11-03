@@ -113,7 +113,7 @@ class ReplayBuffer:
                     effective_horizon = 0
                 is_terminal = True
             elif subtrajectory_len >= self.update_horizon + 1:
-                effective_horizon = subtrajectory_len - 1
+                effective_horizon = self.update_horizon
                 is_terminal = False
             else:
                 return None
