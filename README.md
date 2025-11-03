@@ -39,8 +39,6 @@ pip install -e .[dev,gpu]
 To verify the installation, run the tests as:```pytest```
 
 ## Running experiments
-### Training
-
 To train a DQN agent on Lunar Lander on your local system, run:\
 `
 launch_job/lunar_lander/local_dqn.sh --experiment_name test_run --first_seed 0 --last_seed 0 --disable_wandb
