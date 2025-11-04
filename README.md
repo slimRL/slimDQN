@@ -6,7 +6,7 @@
 <a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**`slimRL`** provides a concise and customizable implementation of Deep Q-Network (DQN) algorithm in Reinforcement Learning⛳ for Lunar Lander and Atari environments. 
+**`slimDQN`** provides a concise and customizable implementation of Deep Q-Network (DQN) algorithm in Reinforcement Learning⛳ for Lunar Lander and Atari environments. 
 It enables to quickly code and run proof-of-concept type of experiments in off-policy Deep RL settings.
 
 ### 🚀 Key advantages
