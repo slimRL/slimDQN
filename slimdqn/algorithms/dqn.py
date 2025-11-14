@@ -29,7 +29,7 @@ class DQN:
 
         self.optimizer = optax.adam(learning_rate, eps=adam_eps)
         self.optimizer_state = self.optimizer.init(self.params)
-        self.target_params = self.params
+        self.target_params = self.params.copy()
 
         self.gamma = gamma
         self.update_horizon = update_horizon
