@@ -2,7 +2,7 @@
 
 ![python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)
 ![jax_badge][jax_badge_link]
-![Static Badge](https://img.shields.io/badge/lines%20of%20code-3060-green)
+![Static Badge](https://img.shields.io/badge/lines%20of%20code-870-green)
 <a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
