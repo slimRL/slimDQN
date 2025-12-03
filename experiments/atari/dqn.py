@@ -41,6 +41,7 @@ def run(argvs=sys.argv[1:]):
         target_update_period=p["target_update_period"],
         adam_eps=1.5e-4,
     )
+    p["env_name"] = "atari_" + p["experiment_name"].split("_")[-1]
     train(train_key, p, agent, env, rb)
 
 
