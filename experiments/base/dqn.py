@@ -62,4 +62,5 @@ def train(key: jax.random.PRNGKey, p: dict, agent: DQN, env, rb: ReplayBuffer):
             episode_lengths_per_epoch.append([0])
 
         save_data(p, episode_returns_per_epoch, episode_lengths_per_epoch, agent.get_model())
-    save_rb(p, rb)
+    if p["save_rb"]:
+        save_rb(p, rb)
