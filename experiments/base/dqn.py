@@ -7,6 +7,7 @@ from experiments.base.utils import save_data
 from slimdqn.algorithms.dqn import DQN
 from slimdqn.sample_collection.replay_buffer import ReplayBuffer
 from slimdqn.sample_collection.utils import collect_single_sample
+from experiments.car_on_hill.save_rb import save_rb
 
 
 def train(key: jax.random.PRNGKey, p: dict, agent: DQN, env, rb: ReplayBuffer):
@@ -61,3 +62,5 @@ def train(key: jax.random.PRNGKey, p: dict, agent: DQN, env, rb: ReplayBuffer):
             episode_lengths_per_epoch.append([0])
 
         save_data(p, episode_returns_per_epoch, episode_lengths_per_epoch, agent.get_model())
+    p["env_name"] = "car_on_hill"
+    save_rb(p, rb)

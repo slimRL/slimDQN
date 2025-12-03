@@ -163,6 +163,7 @@ env/
 env_cpu/
 rough/
 wandb/
+data/*
 .vscode
 
 experiments/**/exp_output/*
