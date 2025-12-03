@@ -95,7 +95,7 @@ def add_base_arguments(parser: argparse.ArgumentParser):
         "--horizon",
         help="Horizon for truncation.",
         type=int,
-        default=1000,
+        default=250,
     )
     parser.add_argument(
         "-at",
@@ -110,7 +110,7 @@ def add_base_arguments(parser: argparse.ArgumentParser):
         "--n_epochs",
         help="Number of epochs to perform.",
         type=int,
-        default=10,
+        default=30,
     )
     parser.add_argument(
         "-ntspe",
@@ -153,6 +153,13 @@ def add_base_arguments(parser: argparse.ArgumentParser):
         help="Duration of epsilon's linear decay used for exploration.",
         type=float,
         default=1_000,
+    )
+    parser.add_argument(
+        "-srb",
+        "--save_rb",
+        help="Whether to save RB or not.",
+        type=bool,
+        default=True,
     )
 
 
