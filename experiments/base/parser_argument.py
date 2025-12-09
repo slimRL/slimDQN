@@ -161,6 +161,33 @@ def add_base_arguments(parser: argparse.ArgumentParser):
         type=bool,
         default=True,
     )
+    parser.add_argument(
+        "-nsx",
+        "--n_states_x",
+        help="Number of States in X for Scatter Plot.",
+        type=int,
+        default=17,
+    )
+    parser.add_argument(
+        "-nsv",
+        "--n_states_v",
+        help="Number of States in V for Scatter Plot.",
+        type=int,
+        default=17,
+    )
+    parser.add_argument(
+        "-cs",
+        "--count_samples",
+        help="Whether to count samples.",
+        type=bool,
+        default=True,
+    )
+    parser.add_argument(
+        "-ssm",
+        "--save_sample_mask",
+        type=bool,
+        default=True,
+    )
 
 
 @output_added_arguments
