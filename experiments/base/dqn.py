@@ -7,11 +7,14 @@ from experiments.base.utils import save_data
 from slimdqn.algorithms.dqn import DQN
 from slimdqn.sample_collection.replay_buffer import ReplayBuffer
 from slimdqn.sample_collection.utils import collect_single_sample
-from experiments.car_on_hill.save_rb import save_rb
-
+from slimdqn.sample_collection.save_rb import save_rb
+from slimdqn.sample_collection.utils import define_boxes
+from slimdqn.sample_collection.vizualize_samples import count_samples_and_plot
 
 def train(key: jax.random.PRNGKey, p: dict, agent: DQN, env, rb: ReplayBuffer):
     epsilon_schedule = optax.linear_schedule(1.0, p["epsilon_end"], p["epsilon_duration"])
+
+    states_x, states_x_boxes, states_v, states_v_boxes = define_boxes(env, p["n_states_x"], p["n_states_v"])
 
     n_training_steps = 0
     env.reset()
@@ -64,3 +67,5 @@ def train(key: jax.random.PRNGKey, p: dict, agent: DQN, env, rb: ReplayBuffer):
         save_data(p, episode_returns_per_epoch, episode_lengths_per_epoch, agent.get_model())
     if p["save_rb"]:
         save_rb(p, rb)
+        if p["count_samples"]:
+            count_samples_and_plot(rb, p, states_x, states_x_boxes, states_v, states_v_boxes)

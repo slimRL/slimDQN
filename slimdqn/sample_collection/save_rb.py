@@ -14,9 +14,10 @@ def save_rb(p, rb):
     capacity = p["replay_buffer_capacity"]
     seed = p["seed"]
     env_name = p["env_name"]
+    exp_name = p["experiment_name"]
     idx_iteration = 0  # use '0' as the checkpoint
 
-    base_dir = os.path.join(os.getcwd(), "data", env_name, f"{algo_name}_{capacity}", str(seed))
+    base_dir = os.path.join(os.getcwd(), "data", env_name, f"{exp_name}/{algo_name}/rb_capacity_{capacity}/{str(seed)}")
     save_dir = os.path.join(base_dir, str(idx_iteration))
 
     if not os.path.exists(save_dir):
