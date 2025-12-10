@@ -58,7 +58,7 @@ def count_samples(
 
 def get_states(rb: ReplayBuffer):
     if not rb.memory:
-        return np.array([])
+        return np.array([]), np.array([])
     unpacked_states = [element.unpack().state for element in rb.memory.values()]
     unpacked_rewards = [element.unpack().reward for element in rb.memory.values()]
     return np.stack(unpacked_states), np.stack(unpacked_rewards)
