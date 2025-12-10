@@ -9,7 +9,7 @@ from slimdqn.sample_collection.replay_buffer import ReplayBuffer
 from slimdqn.sample_collection.utils import collect_single_sample
 from slimdqn.sample_collection.save_rb import save_rb
 from slimdqn.sample_collection.utils import define_boxes
-from slimdqn.sample_collection.vizualize_samples import count_samples_and_plot
+from slimdqn.sample_collection.visualize_samples import count_samples_and_plot
 
 def train(key: jax.random.PRNGKey, p: dict, agent: DQN, env, rb: ReplayBuffer):
     epsilon_schedule = optax.linear_schedule(1.0, p["epsilon_end"], p["epsilon_duration"])
