@@ -2,6 +2,7 @@ import jax
 import jax.numpy as jnp
 from functools import partial
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 import numpy as np
 import time
 from IPython.display import clear_output
@@ -119,14 +120,28 @@ class TwoDimesionsMesh:
         plt.rc("font", size=18)
         plt.rc("lines", linewidth=3)
 
+        plot_values = self.values.copy()
+        plot_values = np.ma.masked_equal(plot_values, 0)
+
         if self.zero_centered:
-            abs_max = np.max(np.abs(self.values))
-            kwargs = {"cmap": "PRGn", "vmin": -abs_max, "vmax": abs_max}
+            #abs_max = np.max(np.abs(self.values))
+            #kwargs = {"cmap": "PRGn", "vmin": -abs_max, "vmax": abs_max}
+            v_min = np.nanmin(self.values)
+            v_max = np.nanmax(self.values)
+
+            if v_min > 0: v_min = 0
+            if v_max < 0: v_max = 0
+
+            if v_min == 0 and v_max == 0:
+                v_min, v_max = -1, 1
+
+            norm = mcolors.TwoSlopeNorm(vmin=v_min, vcenter=0, vmax=v_max)
+            kwargs = {"cmap": "PRGn", "norm": norm}
         else:
             kwargs = {}
 
         colors = ax.pcolormesh(
-            self.grid_dimension_one, self.grid_dimension_two, self.values.T, shading="nearest", **kwargs
+            self.grid_dimension_one, self.grid_dimension_two, plot_values.T, shading="nearest", **kwargs
         )
 
         ax.set_xticks(self.dimension_one[::ticks_freq])
