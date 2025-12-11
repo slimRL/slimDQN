@@ -5,7 +5,7 @@ ENV_NAME="lunar_lander"
 ALGO="dqn"
 
 #policy expertise
-EXPERIMENT_TAG="noob_dqn_${ENV_NAME}"
+EXPERIMENT_TAG="noob_${ALGO}_${ENV_NAME}"
 FEATURES="5 5"
 BATCH_SIZE=6
 
@@ -31,7 +31,7 @@ POLICY_EXPERTISE_ARGS="--features $FEATURES --batch_size $BATCH_SIZE"
 
 
 LAUNCHER_SCRIPT="launch_job/${ENV_NAME}/cluster_${ALGO}.sh"
-FULL_EXPERIMENT_NAME="${EXPERIMENT_TAG}_${ALGO}"
+FULL_EXPERIMENT_NAME="${EXPERIMENT_TAG}"
 
 echo "----------------------------------------------------------------"
 echo "Launching Job"
