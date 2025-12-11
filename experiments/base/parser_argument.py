@@ -186,7 +186,7 @@ def add_base_arguments(parser: argparse.ArgumentParser):
         "-ssm",
         "--save_sample_mask",
         type=bool,
-        default=True,
+        default=False,
     )
 
 
