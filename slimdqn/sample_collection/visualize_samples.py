@@ -98,6 +98,6 @@ def count_samples_and_plot(
     q_visu_mesh.set_values(samples_count)
     q_visu_mesh.show("", xlabel="x", ylabel="v", plot=False, ticks_freq=2)
     plt.savefig(
-        f"figures/{p['env_name']}/figures/{p['experiment_name']}/{p['seed']}/samples_count.pdf",
+        f"figures/{p['env_name']}/figures/{p['experiment_name']}/{p['seed']}/samples_count.jpeg",
         bbox_inches="tight",
     )
