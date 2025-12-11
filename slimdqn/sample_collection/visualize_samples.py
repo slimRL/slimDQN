@@ -67,18 +67,18 @@ def get_states(rb: ReplayBuffer):
 def count_samples_and_plot(
     rb: ReplayBuffer,
     p: dict,
-    states_x: np.ndarray,
-    states_x_boxes: np.ndarray,
-    states_v: np.ndarray,
-    states_v_boxes: np.ndarray,
+    n_states_1: np.ndarray,
+    n_states_1_boxes: np.ndarray,
+    n_states_2: np.ndarray,
+    n_states_2_boxes: np.ndarray,
 ):
     states, rewards = get_states(rb)
 
     samples_count, _, _ = count_samples(
         states[:, 0],
         states[:, 1],
-        states_x_boxes,
-        states_v_boxes,
+        n_states_1_boxes,
+        n_states_2_boxes,
         rewards,
     )
 
@@ -93,7 +93,7 @@ def count_samples_and_plot(
     )
 
     q_visu_mesh = TwoDimesionsMesh(
-        states_x, states_v, sleeping_time=0, axis_equal=False, zero_centered=False
+        n_states_1, n_states_2, sleeping_time=0, axis_equal=False, zero_centered=False
     )
     q_visu_mesh.set_values(samples_count)
     q_visu_mesh.show("", xlabel="x", ylabel="v", plot=False, ticks_freq=2)

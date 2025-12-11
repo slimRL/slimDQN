@@ -14,12 +14,13 @@ from slimdqn.sample_collection.visualize_samples import count_samples_and_plot
 def train(key: jax.random.PRNGKey, p: dict, agent: DQN, env, rb: ReplayBuffer):
     epsilon_schedule = optax.linear_schedule(1.0, p["epsilon_end"], p["epsilon_duration"])
 
-    states_x, states_x_boxes, states_v, states_v_boxes = define_boxes(env, p["n_states_x"], p["n_states_v"])
 
     n_training_steps = 0
     env.reset()
     episode_returns_per_epoch = [[0]]
     episode_lengths_per_epoch = [[0]]
+
+    n_states_1, n_states_1_boxes, n_states_2, n_states_2_boxes = define_boxes(p, env)
 
     for idx_epoch in tqdm(range(p["n_epochs"])):
         n_training_steps_epoch = 0
@@ -68,4 +69,4 @@ def train(key: jax.random.PRNGKey, p: dict, agent: DQN, env, rb: ReplayBuffer):
     if p["save_rb"]:
         save_rb(p, rb)
         if p["count_samples"]:
-            count_samples_and_plot(rb, p, states_x, states_x_boxes, states_v, states_v_boxes)
+            count_samples_and_plot(rb, p, n_states_1, n_states_1_boxes, n_states_2, n_states_2_boxes)

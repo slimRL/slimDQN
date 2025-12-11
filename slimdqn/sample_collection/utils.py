@@ -43,8 +43,32 @@ def collect_single_sample(key, env, agent, rb: ReplayBuffer, p, epsilon_schedule
 
     return reward, episode_end
 
+def define_boxes(p: dict, env):
+    env_name = p.get("env_name")
+    n_states_1 = p.get("n_states_1")
+    n_states_2 = p.get("n_states_2")
+    target_func_name = f"define_boxes_{env_name}"
 
-def define_boxes(env, n_states_x: int, n_states_v: int) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    if target_func_name in globals():
+        return globals()[target_func_name](env, n_states_1, n_states_2)
+    else:
+        raise ValueError(f"No definition found for: {target_func_name}")
+
+def define_boxes_lunar_lander(env, n_states_x: int, n_states_y: int) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+
+    x_max, y_max = env.env.observation_space.high[:2]
+    states_x = np.linspace(-x_max, x_max, n_states_x)
+    boxes_x_size = (2 * x_max) / (n_states_x - 1)
+    states_x_boxes = np.linspace(-x_max, x_max + boxes_x_size, n_states_x + 1) - boxes_x_size / 2
+
+
+    states_y = np.linspace(-y_max, y_max, n_states_y)
+    boxes_y_size = (2 * y_max) / (n_states_y - 1)
+    states_y_boxes = np.linspace(-y_max, y_max + boxes_y_size, n_states_y + 1) - boxes_y_size / 2
+
+    return states_x, states_x_boxes, states_y, states_y_boxes
+
+def define_boxes_car_on_hill(env, n_states_x: int, n_states_v: int) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
 
     states_x = np.linspace(-env.max_pos, env.max_pos, n_states_x)
     boxes_x_size = (2 * env.max_pos) / (n_states_x - 1)

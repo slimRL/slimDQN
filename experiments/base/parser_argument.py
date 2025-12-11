@@ -163,15 +163,15 @@ def add_base_arguments(parser: argparse.ArgumentParser):
     )
     parser.add_argument(
         "-nsx",
-        "--n_states_x",
-        help="Number of States in X for Scatter Plot.",
+        "--n_states_1",
+        help="Number of States in Dimension 1 for Scatter Plot.",
         type=int,
         default=17,
     )
     parser.add_argument(
         "-nsv",
-        "--n_states_v",
-        help="Number of States in V for Scatter Plot.",
+        "--n_states_2",
+        help="Number of States in Dimension 2 for Scatter Plot.",
         type=int,
         default=17,
     )
