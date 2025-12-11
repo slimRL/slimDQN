@@ -1,13 +1,17 @@
 #!/bin/bash
 
 
+#policy expertise
+EXPERTISE="noob"
+FEATURES="5 5"
+BATCH_SIZE=6
+
 ENV_NAME="car_on_hill"
 ALGO="dqn"
 
-#policy expertise
-EXPERIMENT_TAG="noob_${ALGO}_${ENV_NAME}"
-FEATURES="5 5"
-BATCH_SIZE=6
+EXPERIMENT_TAG="${EXPERTISE}_${ALGO}_${ENV_NAME}"
+
+
 
 FIRST_SEED=0
 LAST_SEED=5
