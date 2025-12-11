@@ -41,7 +41,7 @@ echo "----------------------------------------------------------------"
 echo "Launching Job"
 echo "Experiment: $FULL_EXPERIMENT_NAME"
 echo "Algorithm:  $ALGO"
-echo "Policy Expertise Args: $ALGO_ARGS"
+echo "Policy Expertise Args: $EXPERTISE"
 echo "Data Args: $DATA_ARGS"
 echo "----------------------------------------------------------------"
 
