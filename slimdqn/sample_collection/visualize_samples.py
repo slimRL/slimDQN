@@ -82,7 +82,7 @@ def count_samples_and_plot(
         rewards,
     )
 
-    path = f"figures/{p['env_name']}/figures/{p['experiment_name']}"
+    path = f"figures/{p['env_name']}/figures/{p['experiment_name']}/{p['seed']}"
     if not os.path.exists(path):
         os.makedirs(path, exist_ok=True)
         
@@ -93,11 +93,11 @@ def count_samples_and_plot(
     )
 
     q_visu_mesh = TwoDimesionsMesh(
-        states_x, states_v, sleeping_time=0, axis_equal=False, zero_centered=True
+        states_x, states_v, sleeping_time=0, axis_equal=False, zero_centered=False
     )
     q_visu_mesh.set_values(samples_count)
     q_visu_mesh.show("", xlabel="x", ylabel="v", plot=False, ticks_freq=2)
     plt.savefig(
-        f"figures/{p['env_name']}/figures/{p['experiment_name']}/samples_count.pdf",
+        f"figures/{p['env_name']}/figures/{p['experiment_name']}/{p['seed']}/samples_count.pdf",
         bbox_inches="tight",
     )
