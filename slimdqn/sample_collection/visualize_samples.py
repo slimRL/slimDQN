@@ -93,10 +93,10 @@ def count_samples_and_plot(
     )
 
     q_visu_mesh = TwoDimesionsMesh(
-        n_states_1, n_states_2, sleeping_time=0, axis_equal=False, zero_centered=False
+        n_states_1, n_states_2, sleeping_time=0, axis_equal=False, zero_centered=True #False
     )
     q_visu_mesh.set_values(samples_count)
-    q_visu_mesh.show("", xlabel="x", ylabel="v", plot=False, ticks_freq=2)
+    q_visu_mesh.show("", xlabel="x", ylabel="v" if p.get("env_name") == "car_on_hill" else "y", plot=False, ticks_freq=2)
     plt.savefig(
         f"figures/{p['env_name']}/figures/{p['experiment_name']}/{p['seed']}/samples_count.jpeg",
         bbox_inches="tight",

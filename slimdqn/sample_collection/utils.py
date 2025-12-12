@@ -63,7 +63,7 @@ def define_boxes_lunar_lander(env, n_states_x: int, n_states_y: int) -> tuple[np
     states_x_boxes = np.linspace(-x_max, x_max + boxes_x_size, n_states_x + 1) - boxes_x_size / 2
 
 
-    states_y = np.linspace(-y_max, y_max, n_states_y)
+    states_y = np.linspace(0, y_max, n_states_y)
     boxes_y_size = (2 * y_max) / (n_states_y - 1)
     states_y_boxes = np.linspace(-y_max, y_max + boxes_y_size, n_states_y + 1) - boxes_y_size / 2
 
@@ -135,7 +135,7 @@ class TwoDimesionsMesh:
             if v_min == 0 and v_max == 0:
                 v_min, v_max = -1, 1
 
-            norm = mcolors.TwoSlopeNorm(vmin=v_min, vcenter=0, vmax=v_max)
+            norm = mcolors.TwoSlopeNorm(vmin=v_min, vcenter=(v_max-v_min)/2, vmax=v_max)
             kwargs = {"cmap": "PRGn", "norm": norm}
         else:
             kwargs = {}
