@@ -2,28 +2,27 @@ import gzip
 import os
 import numpy as np
 from tqdm import tqdm
+import random
 
 
 def _generate_filename(checkpoint_dir, attr, idx_iteration, extension):
     return os.path.join(checkpoint_dir, str(idx_iteration), f"{attr}.{extension}")
 
 
-def save_rb(p, rb):
+def save_rb(p, rb, epoch_idx, save_ratio=0.1):
 
     algo_name = p.get("algo_name", "dqn")
     capacity = p["replay_buffer_capacity"]
     seed = p["seed"]
     env_name = p["env_name"]
     exp_name = p["experiment_name"]
-    idx_iteration = 0  # use '0' as the checkpoint
 
     base_dir = os.path.join(os.getcwd(), "data", env_name, f"{exp_name}/{algo_name}/rb_capacity_{capacity}/{str(seed)}")
-    save_dir = os.path.join(base_dir, str(idx_iteration))
+    save_dir = os.path.join(base_dir, f"epoch_{epoch_idx}")
 
     if not os.path.exists(save_dir):
         os.makedirs(save_dir, exist_ok=True)
 
-    print(f"Extracting data from ReplayBuffer to {save_dir}...")
 
     observations = []
     o_tm1_indices = []
@@ -34,10 +33,13 @@ def save_rb(p, rb):
     rewards = []
     is_terminals = []
 
-    sorted_keys = sorted(rb.memory.keys())
+    #randomly select a subset of keys based on save_ratio
+    all_keys = list(rb.memory.keys())
+    n_samples_to_save = int(len(all_keys) * save_ratio)
+    selected_keys = sorted(random.sample(all_keys, n_samples_to_save)) # use fixed seed for exact reproducability
     current_obs_ptr = 0
 
-    for k in tqdm(sorted_keys, desc="Converting ReplayBuffer"):
+    for k in tqdm(selected_keys, desc=f"Saving Epoch {epoch_idx}"):
         element = rb.memory[k].unpack()
 
         state = element.state
@@ -97,4 +99,3 @@ def save_rb(p, rb):
         with gzip.GzipFile(fileobj=f, mode="wb") as outfile:
             np.save(outfile, dataset_components["observations"])
 
-    print(f"Successfully saved {len(actions)} transitions.")
