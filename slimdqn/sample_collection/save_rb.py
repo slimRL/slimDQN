@@ -18,7 +18,7 @@ def save_rb(p, rb, epoch_idx, save_ratio=0.1):
     exp_name = p["experiment_name"]
 
     base_dir = os.path.join(os.getcwd(), "data", env_name, f"{exp_name}/{algo_name}/rb_capacity_{capacity}/{str(seed)}")
-    save_dir = os.path.join(base_dir, epoch_idx)
+    save_dir = os.path.join(base_dir, f"{epoch_idx}")
 
     if not os.path.exists(save_dir):
         os.makedirs(save_dir, exist_ok=True)
