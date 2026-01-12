@@ -67,6 +67,6 @@ def train(key: jax.random.PRNGKey, p: dict, agent: DQN, env, rb: ReplayBuffer):
 
         save_data(p, episode_returns_per_epoch, episode_lengths_per_epoch, agent.get_model())
         if p["save_rb"]:
-            save_rb(p, rb,epoch_idx=idx_epoch, save_ratio=0.1) #save 10% of RB each episode
+            save_rb(p, rb,epoch_idx=idx_epoch, save_ratio=1) #save 100% of RB each episode
         if p["count_samples"]:
             count_samples_and_plot(rb, p, n_states_1, n_states_1_boxes, n_states_2, n_states_2_boxes)
