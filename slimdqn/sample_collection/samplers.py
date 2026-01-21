@@ -74,7 +74,7 @@ class Prioritized(Uniform):
             return super().sample(size)
 
         targets = self.rng.uniform(0.0, self.sum_tree.root, size=size)
-        indices = self.sum_tree.query(targets)
+        indices = self.sum_tree.query(targets, len(self.index_to_key) - 1)
         probabilities = self.sum_tree.get(indices)
         importance_weights = 1.0 / np.sqrt(probabilities + 1e-10)  # beta = 0.5
         importance_weights /= np.max(importance_weights)
