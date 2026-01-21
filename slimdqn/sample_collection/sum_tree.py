@@ -47,8 +47,10 @@ class SumTree:
 
             # Traverse the tree but only if that index isn't masked
             node_indices = np.where(
-                traversal_mask, np.where(targets < left_node_sums, left_node_indices, right_node_indices), node_indices
+                traversal_mask, np.where(targets <= left_node_sums, left_node_indices, right_node_indices), node_indices
             )
-            targets = np.where(targets < left_node_sums, targets, targets - left_node_sums)
+            targets = np.where(targets <= left_node_sums, targets, targets - left_node_sums)
 
-        return node_indices - self.first_leaf_offset
+        # self.nodes can contain some numerical impressisions leading queries with high targets to go out of bounds
+        # therefore, we cap the indices to the admissible range
+        return np.minimum(node_indices - self.first_leaf_offset, self.capacity - 1)

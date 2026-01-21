@@ -34,7 +34,10 @@ class Uniform:
 
     def sample(self, size: int):
         indices = self.rng.integers(len(self.index_to_key), size=size)
-        return np.array([self.index_to_key[index] for index in indices], dtype=np.int32), None
+        return np.array([self.index_to_key[index] for index in indices], dtype=np.int32), np.ones(size)
+
+    def update(self, keys, loss):
+        pass
 
 
 class Prioritized(Uniform):
