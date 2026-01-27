@@ -1,6 +1,7 @@
 import jax
 import jax.numpy as jnp
 from functools import partial
+
 from slimdqn.sample_collection.replay_buffer import ReplayBuffer, TransitionElement
 
 

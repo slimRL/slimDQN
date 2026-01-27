@@ -158,8 +158,8 @@ def add_base_arguments(parser: argparse.ArgumentParser):
         "-srb",
         "--save_rb",
         help="Whether to save RB or not.",
-        type=bool,
-        default=True,
+        default=False,
+        action="store_true",
     )
 
 
