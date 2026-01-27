@@ -95,7 +95,7 @@ def add_base_arguments(parser: argparse.ArgumentParser):
         "--horizon",
         help="Horizon for truncation.",
         type=int,
-        default=250,
+        default=1000,
     )
     parser.add_argument(
         "-at",
@@ -110,7 +110,7 @@ def add_base_arguments(parser: argparse.ArgumentParser):
         "--n_epochs",
         help="Number of epochs to perform.",
         type=int,
-        default=30,
+        default=10,
     )
     parser.add_argument(
         "-ntspe",
@@ -160,33 +160,6 @@ def add_base_arguments(parser: argparse.ArgumentParser):
         help="Whether to save RB or not.",
         type=bool,
         default=True,
-    )
-    parser.add_argument(
-        "-nsx",
-        "--n_states_1",
-        help="Number of States in Dimension 1 for Scatter Plot.",
-        type=int,
-        default=17,
-    )
-    parser.add_argument(
-        "-nsv",
-        "--n_states_2",
-        help="Number of States in Dimension 2 for Scatter Plot.",
-        type=int,
-        default=17,
-    )
-    parser.add_argument(
-        "-cs",
-        "--count_samples",
-        help="Whether to count samples.",
-        type=bool,
-        default=True,
-    )
-    parser.add_argument(
-        "-ssm",
-        "--save_sample_mask",
-        type=bool,
-        default=False,
     )
 
 

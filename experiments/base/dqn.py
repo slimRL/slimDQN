@@ -8,19 +8,15 @@ from slimdqn.algorithms.dqn import DQN
 from slimdqn.sample_collection.replay_buffer import ReplayBuffer
 from slimdqn.sample_collection.utils import collect_single_sample
 from slimdqn.sample_collection.save_rb import save_rb
-from slimdqn.sample_collection.utils import define_boxes
-from slimdqn.sample_collection.visualize_samples import count_samples_and_plot
+
 
 def train(key: jax.random.PRNGKey, p: dict, agent: DQN, env, rb: ReplayBuffer):
     epsilon_schedule = optax.linear_schedule(1.0, p["epsilon_end"], p["epsilon_duration"])
-
 
     n_training_steps = 0
     env.reset()
     episode_returns_per_epoch = [[0]]
     episode_lengths_per_epoch = [[0]]
-
-    n_states_1, n_states_1_boxes, n_states_2, n_states_2_boxes = define_boxes(p, env)
 
     for idx_epoch in tqdm(range(p["n_epochs"])):
         n_training_steps_epoch = 0
@@ -67,6 +63,4 @@ def train(key: jax.random.PRNGKey, p: dict, agent: DQN, env, rb: ReplayBuffer):
 
         save_data(p, episode_returns_per_epoch, episode_lengths_per_epoch, agent.get_model())
         if p["save_rb"]:
-            save_rb(p, rb,epoch_idx=idx_epoch, save_ratio=1) #save 100% of RB each episode
-        if p["count_samples"]:
-            count_samples_and_plot(rb, p, n_states_1, n_states_1_boxes, n_states_2, n_states_2_boxes)
+            save_rb(p, rb, epoch_idx=idx_epoch, save_ratio=1)
