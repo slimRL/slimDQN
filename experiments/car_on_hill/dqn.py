@@ -39,7 +39,6 @@ def run(argvs=sys.argv[1:]):
         data_to_update=p["data_to_update"],
         target_update_period=p["target_update_period"],
     )
-    p["env_name"] = "car_on_hill"
     train(train_key, p, agent, env, rb)
 
 
