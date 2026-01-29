@@ -11,9 +11,10 @@ def save_rb(p, rb, epoch_idx):
         p["experiment_name"],
         p["algo_name"],
         f"rb_capacity_{p['replay_buffer_capacity']}",
-        p["seed"],
-        epoch_idx,
+        str(p["seed"]),
+        str(epoch_idx),
     )
+    print(f"Saving RB to {save_dir}")
     os.makedirs(save_dir, exist_ok=True)
 
     observations = []
